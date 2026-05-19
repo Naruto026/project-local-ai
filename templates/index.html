@@ -1,23 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Local AI</title>
+
     <link rel="stylesheet" href="/static/style.css">
+
+    <!-- Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Highlight.js -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
+
 <body>
 
-    <div id="chat-box"></div>
+    <!-- SIDEBAR -->
+    <div id="sidebar">
 
-    <div id="input-area">
-        <input type="text" id="user-input" placeholder="Ask anything..."/>
-        <select id="model-select">
-            <option value="qwen2.5-coder:7b">Qwen Coder</option>
-            <option value="llama3.2:3b">Llama Chat</option>
-        </select>
-        <button id="send-btn">Send</button>
+        <div id="sidebar-top">
+            <button id="new-chat-btn">+ New Chat</button>
+        </div>
+
+        <div id="conversation-list">
+            <!-- conversations here -->
+        </div>
+
+    </div>
+
+    <!-- MAIN -->
+    <div id="main-container">
+
+        <!-- TOPBAR -->
+        <div id="topbar">
+
+            <h2>Local AI</h2>
+
+            <select id="model-select">
+            </select>
+
+        </div>
+
+        <!-- CHAT -->
+        <div id="chat-box"></div>
+
+        <!-- INPUT -->
+        <div id="input-area">
+
+            <input
+                type="text"
+                id="user-input"
+                placeholder="Ask anything..."
+            />
+
+            <button id="send-btn">Send</button>
+
+        </div>
+
     </div>
 
     <script src="/static/script.js"></script>
+
 </body>
+
 </html>

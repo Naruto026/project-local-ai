@@ -16,15 +16,29 @@ Runs completely on personal hardware — zero API costs, zero cloud dependency.
 - HTML + CSS + JavaScript
 
 ## Setup
-1. Install [Ollama](https://ollama.com)
-2. Pull models:
-   ollama pull qwen2.5-coder:7b
-   ollama pull llama3.2:3b
-3. Install dependencies:
-   pip install flask ollama pymupdf python-docx openpyxl
-4. Run:
-   python app.py
-5. Open browser: http://127.0.0.1:5000
+## Setup
+
+### Requirements
+- Python 3.8+
+- Ollama installed
+- NVIDIA GPU recommended (works on CPU too, slower)
+
+### Step 1 — Install Ollama
+Download from https://ollama.com and install it.
+
+### Step 2 — Pull AI Models
+Open terminal and run:
+ollama pull qwen2.5-coder:7b
+ollama pull llama3.2:3b
+
+### Step 3 — Install Python Dependencies
+pip install flask ollama pymupdf python-docx openpyxl
+
+### Step 4 — Run the App
+python app.py
+
+### Step 5 — Open in Browser
+http://127.0.0.1:3000
 
 ## Screenshots
 (coming soon)
