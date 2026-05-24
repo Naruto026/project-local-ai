@@ -12,51 +12,47 @@ os.makedirs(CONVERSATIONS_DIR, exist_ok=True)
 current_conversation_id = None
 chat_history = []
 
+
+def conversation_title(messages):
+    for msg in messages:
+        if msg.get('role') == 'user':
+            return msg['content'][:40]
+    return 'New Chat'
+
+
 def save_conversation(conv_id, messages):
     path = os.path.join(CONVERSATIONS_DIR, f'{conv_id}.json')
-
-    title = "New Chat"
-
-    for msg in messages:
-        if msg['role'] == 'user':
-            title = msg['content'][:40]
-            break
-
     with open(path, 'w', encoding='utf-8') as f:
         json.dump({
             'id': conv_id,
-            'title': title,
+            'title': conversation_title(messages),
             'created': conv_id,
-            'messages': messages
+            'messages': messages,
         }, f, indent=2, ensure_ascii=False)
 
 
 def load_conversation(conv_id):
     path = os.path.join(CONVERSATIONS_DIR, f'{conv_id}.json')
-
-    if os.path.exists(path):
-        with open(path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-
-    return None
+    if not os.path.exists(path):
+        return None
+    with open(path, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
 
 def get_all_conversations():
     conversations = []
-
     for file in sorted(os.listdir(CONVERSATIONS_DIR), reverse=True):
-        if file.endswith('.json'):
-
-            with open(os.path.join(CONVERSATIONS_DIR, file), encoding='utf-8') as f:
-                data = json.load(f)
-
-                conversations.append({
-                    'id': data['id'],
-                    'title': data['title'],
-                    'created': data['created']
-                })
-
+        if not file.endswith('.json'):
+            continue
+        with open(os.path.join(CONVERSATIONS_DIR, file), encoding='utf-8') as f:
+            data = json.load(f)
+        conversations.append({
+            'id': data['id'],
+            'title': data['title'],
+            'created': data['created'],
+        })
     return conversations
+
 
 @app.route('/')
 def home():
@@ -65,22 +61,11 @@ def home():
 
 @app.route('/models')
 def get_models():
-
     try:
-
         response = ollama.list()
-
-        model_names = []
-
-        for model in response.models:
-            model_names.append(model.model)
-
-        return jsonify(model_names)
-
+        return jsonify([model.model for model in response.models])
     except Exception as e:
-
-        print("MODEL ERROR:", e)
-
+        print('MODEL ERROR:', e)
         return jsonify([])
 
 
@@ -92,47 +77,40 @@ def list_conversations():
 @app.route('/conversations/new', methods=['POST'])
 def new_conversation():
     global current_conversation_id, chat_history
-
     current_conversation_id = datetime.now().strftime('%Y%m%d_%H%M%S')
     chat_history = []
-
     return jsonify({'id': current_conversation_id})
 
 
 @app.route('/conversations/<conv_id>', methods=['GET'])
 def get_conversation(conv_id):
-
     global current_conversation_id, chat_history
-
     data = load_conversation(conv_id)
-
-    if data:
-        current_conversation_id = conv_id
-        chat_history = data['messages']
-
-        return jsonify(data)
-
-    return jsonify({'error': 'Conversation not found'}), 404
+    if not data:
+        return jsonify({'error': 'Conversation not found'}), 404
+    current_conversation_id = conv_id
+    chat_history = data['messages']
+    return jsonify(data)
 
 
 @app.route('/conversations/<conv_id>', methods=['DELETE'])
 def delete_conversation(conv_id):
-
+    global current_conversation_id, chat_history
     path = os.path.join(CONVERSATIONS_DIR, f'{conv_id}.json')
+    if not os.path.exists(path):
+        return jsonify({'error': 'Conversation not found'}), 404
+    os.remove(path)
+    if current_conversation_id == conv_id:
+        current_conversation_id = None
+        chat_history = []
+    return jsonify({'success': True})
 
-    if os.path.exists(path):
-        os.remove(path)
-        return jsonify({'success': True})
-
-    return jsonify({'error': 'Conversation not found'}), 404
 
 @app.route('/chat', methods=['POST'])
 def chat():
-
     global current_conversation_id, chat_history
 
-    data = request.json
-
+    data = request.json or {}
     message = data.get('message', '').strip()
     model = data.get('model', 'llama3')
 
@@ -142,50 +120,33 @@ def chat():
     if not current_conversation_id:
         current_conversation_id = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-    # save user msg
-    chat_history.append({
-        'role': 'user',
-        'content': message
-    })
+    chat_history.append({'role': 'user', 'content': message})
 
     def generate():
-
         global chat_history
-
         full_reply = ''
-
         try:
             stream = ollama.chat(
                 model=model,
                 messages=chat_history,
-                stream=True
+                stream=True,
             )
-
             for chunk in stream:
-
                 token = chunk['message']['content']
-
                 full_reply += token
-
                 yield f"data: {json.dumps({'token': token})}\n\n"
 
-            # save AI msg
-            chat_history.append({
-                'role': 'assistant',
-                'content': full_reply
-            })
-
+            chat_history.append({'role': 'assistant', 'content': full_reply})
             save_conversation(current_conversation_id, chat_history)
-
             yield f"data: {json.dumps({'done': True})}\n\n"
 
         except Exception as e:
+            if chat_history and chat_history[-1].get('role') == 'user':
+                chat_history.pop()
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
-    return Response(
-        generate(),
-        mimetype='text/event-stream'
-    )
+    return Response(generate(), mimetype='text/event-stream')
+
 
 if __name__ == '__main__':
     app.run(debug=True)

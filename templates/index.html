@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Local AI</title>
 
     <link rel="stylesheet" href="/static/style.css">
@@ -19,49 +20,27 @@
 
 <body>
 
-    <!-- SIDEBAR -->
-    <div id="sidebar">
-
+    <aside id="sidebar" aria-label="Conversations">
         <div id="sidebar-top">
-            <button id="new-chat-btn">+ New Chat</button>
+            <button type="button" id="new-chat-btn">+ New Chat</button>
         </div>
+        <div id="conversation-list" role="list"></div>
+    </aside>
 
-        <div id="conversation-list">
-            <!-- conversations here -->
-        </div>
-
-    </div>
-
-    <!-- MAIN -->
-    <div id="main-container">
-
-        <!-- TOPBAR -->
-        <div id="topbar">
-
+    <main id="main-container">
+        <header id="topbar">
             <h2>Local AI</h2>
-
-            <select id="model-select">
-            </select>
-
-        </div>
-
-        <!-- CHAT -->
-        <div id="chat-box"></div>
-
-        <!-- INPUT -->
-        <div id="input-area">
-
-            <input
-                type="text"
-                id="user-input"
-                placeholder="Ask anything..."
-            />
-
-            <button id="send-btn">Send</button>
-
-        </div>
-
-    </div>
+            <label>
+                <span class="visually-hidden">Model</span>
+                <select id="model-select" aria-label="Model"></select>
+            </label>
+        </header>
+        <div id="chat-box" role="log" aria-live="polite" aria-relevant="additions"></div>
+        <form id="input-area" onsubmit="return false;">
+            <input type="text" id="user-input" placeholder="Ask anything..." autocomplete="off" />
+            <button type="button" id="send-btn">Send</button>
+        </form>
+    </main>
 
     <script src="/static/script.js"></script>
 
