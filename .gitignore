@@ -179,3 +179,11 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# Runtime data (conversations, uploads, settings)
+data/
+uploads/
+conversations/
+settings.json
+conversations/20260519_180621.json
+conversations/20260519_180630.json
